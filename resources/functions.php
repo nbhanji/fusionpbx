@@ -2099,7 +2099,7 @@
 			$dir = !empty($dir) && strtolower($dir) == 'desc' ? 'desc' : 'asc';
 			if (!empty($col)) {
 				if ($sort == 'natural' && $db_type == "pgsql") {
-					return $order_by . 'natural_sort(' . $col . ') ' . $dir . ' ';
+					return $order_by . 'natural_sort(' . $col . '::text) ' . $dir . ' ';
 				} else {
 					return $order_by . $col . ' ' . $dir . ' ';
 				}
@@ -2114,7 +2114,7 @@
 					}
 				} else {
 					if ($sort == 'natural' && $db_type == "pgsql") {
-						return $order_by . 'natural_sort(' . $col_default . ') ' . $dir_default . ' ';
+						return $order_by . 'natural_sort(' . $col_default . '::text) ' . $dir_default . ' ';
 					} else {
 						return $order_by . $col_default . ' ' . $dir_default . ' ';
 					}
@@ -2333,7 +2333,7 @@ if (!function_exists('is_git_repo')) {
 		chdir($path);
 		exec("git rev-parse --show-toplevel", $git_repo, $git_repo_response);
 		chdir($cwd);
-		if (($git_repo[0]) != $cwd && $git_repo_response == 0) {
+		if ((is_array($git_repo) && count($git_repo) > 0) && ($git_repo[0] != $cwd) && $git_repo_response == 0) {
 			return $git_repo[0];
 		}
 		return false;
