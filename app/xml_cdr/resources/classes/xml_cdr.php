@@ -571,10 +571,7 @@ if (!class_exists('xml_cdr')) {
 						if (substr($destination_number, 0, 3) == '*99') {
 							$status = 'voicemail';
 						}
-						if (isset($xml->variables->voicemail_answer_stamp)) {
-							$status = 'voicemail';
-						}
-						if (isset($xml->variables->voicemail_id)) {
+						if (isset($xml->variables->voicemail_message_seconds) && $xml->variables->voicemail_message_seconds > 0) {
 							$status = 'voicemail';
 						}
 						if ($xml->variables->hangup_cause == 'ORIGINATOR_CANCEL') {
@@ -2007,4 +2004,3 @@ if (!class_exists('xml_cdr')) {
 }
 
 ?>
-
