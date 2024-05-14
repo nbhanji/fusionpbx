@@ -74,7 +74,7 @@
 	if (!empty($_POST) && @sizeof($_POST) > 0) {
 
 		//get the action options: source, schema, app_defaults, menu_defaults, permisisons
-		$action = $_POST['action'];
+		$action = $_POST['action'] ?? null;
 
 		//run source update
 		if (!empty($action["upgrade_source"]) && permission_exists("upgrade_source") && !is_dir("/usr/share/examples/fusionpbx")) {
@@ -142,6 +142,7 @@
 			$included = true;
 			require_once("core/menu/menu_restore_default.php");
 			unset($sel_menu);
+			$text = $language->get(null, '/core/upgrade');
 			message::add($text['message-upgrade_menu'], null, $message_timeout);
 		}
 
@@ -149,6 +150,7 @@
 		if (!empty($action["permission_defaults"]) && permission_exists("group_edit")) {
 			$included = true;
 			require_once("core/groups/permissions_default.php");
+			$text = $language->get(null, '/core/upgrade');
 			message::add($text['message-upgrade_permissions'], null, $message_timeout);
 		}
 
@@ -444,6 +446,7 @@
 		foreach($_SESSION["response"] as $part => $response){
 			echo "<b>".$text["label-results"]." - ".$text["label-${part}"];
 			echo "</b><br /><br />";
+			$error_found = false;
 			if ($part == "optional_apps") {
 				foreach ($response as $app_name => $app_response) {
 					echo "<strong>".$app_name."</strong><br>\n";
