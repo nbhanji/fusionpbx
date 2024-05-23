@@ -418,20 +418,19 @@ if (!class_exists('xml_cdr')) {
 						}
 
 					//if the call is outbound use the external caller ID
-						if (isset($xml->variables->effective_caller_id_name)) {
+						if (urldecode($call_direction) == 'outbound' && isset($xml->variables->effective_caller_id_name)) {
 							$caller_id_name = urldecode($xml->variables->effective_caller_id_name);
 						}
-
-						if (isset($xml->variables->origination_caller_id_name)) {
-							$caller_id_name = urldecode($xml->variables->origination_caller_id_name);
-						}
-
-						if (isset($xml->variables->origination_caller_id_number)) {
-							$caller_id_number = urldecode($xml->variables->origination_caller_id_number);
-						}
-
 						if (urldecode($call_direction) == 'outbound' && isset($xml->variables->effective_caller_id_number)) {
 							$caller_id_number = urldecode($xml->variables->effective_caller_id_number);
+						}
+
+					//if intercept is used then update use the last sent callee id name and number
+						if (isset($xml->variables->last_app) && $xml->variables->last_app == 'intercept' && !empty($xml->variables->last_sent_callee_id_name)) {
+							$caller_id_name = urldecode($xml->variables->last_sent_callee_id_name);
+						}
+						if (isset($xml->variables->last_app) && $xml->variables->last_app == 'intercept' && !empty($xml->variables->last_sent_callee_id_number)) {
+							$caller_id_number = urldecode($xml->variables->last_sent_callee_id_number);
 						}
 
 					//if the sip_from_domain and domain_name are not the same then original call direction was inbound
@@ -457,11 +456,6 @@ if (!class_exists('xml_cdr')) {
 							$i++;
 						}
 						unset($i);
-
-					//if last_sent_callee_id_number is set use it for the destination_number
-						if (!empty($xml->variables->last_sent_callee_id_number)) {
-							$destination_number = urldecode($xml->variables->last_sent_callee_id_number);
-						}
 
 					//remove the provider prefix
 						if (isset($xml->variables->provider_prefix) && isset($destination_number)) {
@@ -1305,32 +1299,35 @@ if (!class_exists('xml_cdr')) {
 					}
 
 					//debug - add the callee_id_number to the end of the status
-					if (isset($_REQUEST['debug']) && $_REQUEST['debug'] == 'true' && !empty($row["caller_profile"]["destination_number"])
-						and !empty($row["caller_profile"]["callee_id_number"])
-						and $row["caller_profile"]["destination_number"] !== $row["caller_profile"]["callee_id_number"]) {
+					if (
+						isset($_REQUEST['debug']) && $_REQUEST['debug'] == 'true'
+						&& !empty($row["caller_profile"]["destination_number"])
+						&& !empty($row["caller_profile"]["callee_id_number"])
+						&& $row["caller_profile"]["destination_number"] !== $row["caller_profile"]["callee_id_number"]
+						) {
 							$app['status'] .= ' ('.$row["caller_profile"]["callee_id_number"].')';
 					}
 
 					//build the application urls
-					$destination_url = "/app/".$app['application']."/".$destination->singular($app['application'])."_edit.php?id=".$app["uuid"];
-					$application_url = "/app/".$app['application']."/".$app['application'].".php";
-					if ($app['application'] == 'call_centers') {
-						$destination_url = "/app/".$app['application']."/".$destination->singular($app['application'])."_queue_edit.php?id=".$app['uuid'];
-						$application_url = "/app/".$app['application']."/".$destination->singular($app['application'])."_queues.php";
+					$destination_url = "/app/".($app['application'] ?? '')."/".$destination->singular($app['application'] ?? '')."_edit.php?id=".($app["uuid"] ?? '');
+					$application_url = "/app/".($app['application'] ?? '')."/".($app['application'] ?? '').".php";
+					if (!empty($app['application']) && $app['application'] == 'call_centers') {
+						$destination_url = "/app/".($app['application'] ?? '')."/".$destination->singular($app['application'] ?? '')."_queue_edit.php?id=".($app["uuid"] ?? '');
+						$application_url = "/app/".($app['application'] ?? '')."/".$destination->singular($app['application'] ?? '')."_queues.php";
 					}
 
 					//add the application and destination details
 					$language2 = new text;
-					$text2 = $language2->get($this->setting->get('domain', 'language'), 'app/'.$app['application']);
-					$call_flow_summary[$x]["application_name"] = $app['application'];
-					$call_flow_summary[$x]["application_label"] = trim($text2['title-'.$app['application']]);
+					$text2 = $language2->get($this->setting->get('domain', 'language'), 'app/'.($app['application'] ?? ''));
+					$call_flow_summary[$x]["application_name"] = ($app['application'] ?? '');
+					$call_flow_summary[$x]["application_label"] = trim($text2['title-'.($app['application'] ?? '')] ?? '');
 					$call_flow_summary[$x]["application_url"] = $application_url;
-					$call_flow_summary[$x]["destination_uuid"] = $app['uuid'];
-					$call_flow_summary[$x]["destination_name"] = $app['name'];
+					$call_flow_summary[$x]["destination_uuid"] = ($app["uuid"] ?? '');
+					$call_flow_summary[$x]["destination_name"] = ($app['name'] ?? '');
 					$call_flow_summary[$x]["destination_url"] = $destination_url;
 					$call_flow_summary[$x]["destination_number"] = $row["caller_profile"]["destination_number"];
-					$call_flow_summary[$x]["destination_label"] = $app['label'];
-					$call_flow_summary[$x]["destination_status"] = $app['status'];
+					$call_flow_summary[$x]["destination_label"] = ($app['label'] ?? '');
+					$call_flow_summary[$x]["destination_status"] = ($app['status'] ?? '');
 					$call_flow_summary[$x]["destination_description"] = $app['description'] ?? '';
 					//$call_flow_summary[$x]["application"] = $app;
 
