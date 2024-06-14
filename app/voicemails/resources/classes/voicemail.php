@@ -37,6 +37,7 @@
 		public $voicemail_message_uuid;
 		public $order_by;
 		public $order;
+		public $offset;
 		public $type;
 
 		/**
@@ -252,6 +253,12 @@
 				}
 				else {
 					$sql .= "order by v.voicemail_id, m.".$this->order_by." ".$this->order." ";
+				}
+				//if paging offset defined, apply it along with rows per page
+				if (isset($this->offset)) {
+					$rows_per_page = $_SESSION['domain']['paging']['numeric'] != '' ? $_SESSION['domain']['paging']['numeric'] : 50;
+					$offset = isset($this->offset) && is_numeric($this->offset) ? $this->offset : 0;
+					$sql .= limit_offset($rows_per_page, $offset);
 				}
 				$parameters['domain_uuid'] = $this->domain_uuid;
 				$parameters['time_zone'] = $time_zone;
@@ -709,6 +716,71 @@
 
 			//check the message waiting status
 				$this->message_waiting();
+		}
+
+		public function message_transcribe() {
+
+			//get the voicemail id
+				$this->get_voicemail_id();
+
+			//check if for valid input
+				if (!is_numeric($this->voicemail_id)
+					|| !is_uuid($this->voicemail_uuid)
+					|| !is_uuid($this->domain_uuid)
+					|| !is_uuid($this->voicemail_message_uuid)
+					) {
+					return false;
+				}
+
+			//add the settings object
+			$settings = new settings(["domain_uuid" => $_SESSION['domain_uuid'], "user_uuid" => $_SESSION['user_uuid']]);
+			$transcribe_enabled = $settings->get('transcribe', 'enabled', 'false');
+			$transcribe_engine = $settings->get('transcribe', 'engine', '');
+
+			//transcribe multiple recordings
+			if ($transcribe_enabled == 'true' && !empty($transcribe_engine)) {
+
+				//add the transcribe object
+				$transcribe = new transcribe($settings);
+
+				//get each voicemail message file
+				$file_path = $_SESSION['switch']['voicemail']['dir']."/default/".$_SESSION['domain_name']."/".$this->voicemail_id;
+				foreach (glob($file_path."/msg_".$this->voicemail_message_uuid.".*") as $file_name) {
+					//audio to text - get the transcription from the audio file
+					$transcribe->audio_path = $file_path;
+					$transcribe->audio_filename = basename($file_name);
+					$message_transcription = $transcribe->transcribe();
+					//build voicemail message data array
+					if (!empty($message_transcription)) {
+						$array['voicemail_messages'][0]['voicemail_message_uuid'] = $this->voicemail_message_uuid;
+						$array['voicemail_messages'][0]['message_transcription'] = $message_transcription;
+						break;
+					}
+				}
+
+				//update the checked rows
+				if (is_array($array) && @sizeof($array) != 0) {
+
+					//grant temporary permissions
+					$p = new permissions;
+					$p->add('voicemail_message_edit', 'temp');
+
+					//execute update
+					$database = new database;
+					$database->app_name = $this->app_name;
+					$database->app_name = $this->app_uuid;
+					$database->save($array);
+					unset($array);
+
+					//revoke temporary permissions
+					$p->delete('voicemail_message_edit', 'temp');
+
+				}
+
+				return !empty($message_transcription) ? true : false;
+
+			}
+
 		}
 
 		public function message_saved() {

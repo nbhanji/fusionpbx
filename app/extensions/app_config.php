@@ -198,6 +198,7 @@
 		$y++;
 		$apps[$x]['permissions'][$y]['name'] = "extension_copy";
 		$apps[$x]['permissions'][$y]['groups'][] = "superadmin";
+		$apps[$x]['permissions'][$y]['groups'][] = "admin";
 		$y++;
 		$apps[$x]['permissions'][$y]['name'] = "extension_export";
 		$apps[$x]['permissions'][$y]['groups'][] = "superadmin";
@@ -349,6 +350,14 @@
 		$apps[$x]['default_settings'][$y]['default_setting_value'] = "#d4d4d4";
 		$apps[$x]['default_settings'][$y]['default_setting_enabled'] = "false";
 		$apps[$x]['default_settings'][$y]['default_setting_description'] = "";
+		$y++;
+		$apps[$x]['default_settings'][$y]['default_setting_uuid'] = "f5650002-e150-438c-8983-1379cf2cd04f";
+		$apps[$x]['default_settings'][$y]['default_setting_category'] = "extension";
+		$apps[$x]['default_settings'][$y]['default_setting_subcategory'] = "extension_range";
+		$apps[$x]['default_settings'][$y]['default_setting_name'] = "text";
+		$apps[$x]['default_settings'][$y]['default_setting_value'] = "100-199";
+		$apps[$x]['default_settings'][$y]['default_setting_enabled'] = "false";
+		$apps[$x]['default_settings'][$y]['default_setting_description'] = "Set the suggested extension range(s) for extensions";
 		$y++;
 		$apps[$x]['default_settings'][$y]['default_setting_uuid'] = "db521639-5c26-4cba-acc7-e8d6fe86657c";
 		$apps[$x]['default_settings'][$y]['default_setting_category'] = "extension";

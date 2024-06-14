@@ -153,11 +153,11 @@
 //ring group forward
 	echo "<div class='hud_box'>\n";
 
-	echo "	<div class='hud_container' ".($dashboard_details_state == "disabled" ?: "onclick=\"$('#hud_ring_group_forward_details').slideToggle('fast'); toggle_grid_row_end('".$dashboard_name."')\"").">\n";
+	echo "	<div class='hud_content' ".($dashboard_details_state == "disabled" ?: "onclick=\"$('#hud_ring_group_forward_details').slideToggle('fast'); toggle_grid_row_end('".$dashboard_name."')\"").">\n";
 	echo "		<span class='hud_title'>".$text['header-ring-group-forward']."</span>\n";
 
 //doughnut chart
-	if ($dashboard_chart_type == "doughnut") {
+	if (!isset($dashboard_chart_type) ||$dashboard_chart_type == "doughnut") {
 		echo "	<div class='hud_chart' style='width: 275px;'><canvas id='ring_group_forward_chart'></canvas></div>\n";
 
 		echo "<script>\n";
@@ -221,7 +221,7 @@
 		echo "	);\n";
 		echo "</script>\n";
 	}
-	if ($dashboard_chart_type == "none") {
+	if ($dashboard_chart_type == "number") {
 		echo "	<span class='hud_stat'>".$stats['forwarding']."</span>";
 	}
 	echo "	</div>\n";
