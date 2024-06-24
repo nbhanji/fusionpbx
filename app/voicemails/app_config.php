@@ -173,6 +173,10 @@
 		$apps[$x]['permissions'][$y]['groups'][] = "user";
 		$apps[$x]['permissions'][$y]['groups'][] = "agent";
 		$y++;
+		$apps[$x]['permissions'][$y]['name'] = "voicemail_local_after_forward";
+		$apps[$x]['permissions'][$y]['groups'][] = "superadmin";
+		$apps[$x]['permissions'][$y]['groups'][] = "admin";
+		$y++;
 		$apps[$x]['permissions'][$y]['name'] = "voicemail_recording_instructions";
 		$apps[$x]['permissions'][$y]['groups'][] = "superadmin";
 		$apps[$x]['permissions'][$y]['groups'][] = "admin";
@@ -357,7 +361,7 @@
 		$apps[$x]['default_settings'][$y]['default_setting_name'] = "boolean";
 		$apps[$x]['default_settings'][$y]['default_setting_value'] = "false";
 		$apps[$x]['default_settings'][$y]['default_setting_enabled'] = "true";
-		$apps[$x]['default_settings'][$y]['default_setting_description'] = "Transcription enabled default value.";
+		$apps[$x]['default_settings'][$y]['default_setting_description'] = "Define the transcription default value for new voicemails boxes.";
 		$y++;
 		$apps[$x]['default_settings'][$y]['default_setting_uuid'] = "52f15a2d-d6c8-4a66-8f57-0ac176cfff17";
 		$apps[$x]['default_settings'][$y]['default_setting_category'] = "theme";
@@ -444,6 +448,11 @@
 		$apps[$x]['db'][$y]['fields'][$z]['type'] = "text";
 		$apps[$x]['db'][$y]['fields'][$z]['search'] = 'true';
 		$apps[$x]['db'][$y]['fields'][$z]['description']['en-us'] = "Choose to keep the voicemail file after sending the email.";
+		$z++;
+		$apps[$x]['db'][$y]['fields'][$z]['name'] = "voicemail_local_after_forward";
+		$apps[$x]['db'][$y]['fields'][$z]['type'] = "text";
+		$apps[$x]['db'][$y]['fields'][$z]['search'] = 'true';
+		$apps[$x]['db'][$y]['fields'][$z]['description']['en-us'] = "Choose to keep the voicemail file after sending to forward destinations.";
 		$z++;
 		$apps[$x]['db'][$y]['fields'][$z]['name'] = "voicemail_enabled";
 		$apps[$x]['db'][$y]['fields'][$z]['type'] = "text";
