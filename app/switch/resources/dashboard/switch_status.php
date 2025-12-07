@@ -13,9 +13,15 @@
 		//access granted
 	}
 
+//convert to a key
+	$widget_key = str_replace(' ', '_', strtolower($widget_name));
+
 //add multi-lingual support
 	$language = new text;
-	$text = $language->get($_SESSION['domain']['language']['code'], 'app/switch');
+	$text = $language->get($settings->get('domain', 'language', 'en-us'), 'app/switch');
+
+//get the dashboard label
+	$widget_label = $text['label-'.$widget_key] ?? $widget_name;
 
 //switch status
 	echo "<div class='hud_box'>\n";
@@ -61,7 +67,7 @@
 		preg_match("/(\d+)\s+session\(s\)\s+\-\speak/", $tmp, $matches);
 		$channels = $matches[1] ? $matches[1] : 0;
 		if (permission_exists('call_active_view')) {
-			$tr_link_channels = "href='".PROJECT_PATH."/app/calls_active/calls_active.php'";
+			$tr_link_channels = "href='".PROJECT_PATH."/app/active_calls/active_calls.php'";
 		}
 	}
 
@@ -78,7 +84,7 @@
 
 //show the content
 	echo "<div class='hud_content' ".($widget_details_state == "disabled" ?: "onclick=\"$('#hud_switch_status_details').slideToggle('fast');\"").">\n";
-	echo "	<span class='hud_title'>".$text['label-switch_status']."</span>\n";
+	echo "	<span class='hud_title'>".escape($widget_label)."</span>\n";
 
 	if (!isset($widget_chart_type) || $widget_chart_type == "doughnut") {
 		//add doughnut chart

@@ -62,6 +62,13 @@
 	}
 
 //used (above) to search the array to determine if an extension is assigned to the user
+	/**
+	 * Checks if the given extension number is assigned to the user.
+	 *
+	 * @param string $number The extension number to check.
+	 *
+	 * @return bool True if the extension number is assigned, False otherwise.
+	 */
 	function extension_assigned($number) {
 		foreach ($_SESSION['user']['extension'] as $row) {
 			if ((is_numeric($row['number_alias']) && $row['number_alias'] == $number) || $row['user'] == $number) {
@@ -82,7 +89,7 @@
 	unset($sql, $parameters);
 
 //define greeting directory
-	$greeting_dir = $_SESSION['switch']['voicemail']['dir'].'/default/'.$_SESSION['domains'][$domain_uuid]['domain_name'].'/'.$voicemail_id;
+	$greeting_dir = $settings->get('switch', 'voicemail').'/default/'.$_SESSION['domains'][$domain_uuid]['domain_name'].'/'.$voicemail_id;
 
 //download the greeting
 	if (!empty($_GET['a']) && $_GET['a'] == "download" && (permission_exists('voicemail_greeting_play') || permission_exists('voicemail_greeting_download'))) {
@@ -102,7 +109,7 @@
 			if (is_array($row) && @sizeof($row) != 0) {
 				$greeting_filename = $row['greeting_filename'];
 				$greeting_id = $row['greeting_id'];
-				if (!empty($_SESSION['voicemail']['storage_type']['text']) && $_SESSION['voicemail']['storage_type']['text'] == 'base64' && $row['greeting_base64'] != '') {
+				if (!empty($settings->get('voicemail', 'storage_type')) && $settings->get('voicemail', 'storage_type') == 'base64' && $row['greeting_base64'] != '') {
 					$greeting_decoded = base64_decode($row['greeting_base64']);
 					file_put_contents($greeting_dir.'/'.$greeting_filename, $greeting_decoded);
 				}
@@ -142,7 +149,7 @@
 			}
 
 			//if base64, remove temp greeting file (if not currently selected greeting)
-			if (!empty($_SESSION['voicemail']['storage_type']['text']) && $_SESSION['voicemail']['storage_type']['text'] == 'base64' && $row['greeting_base64'] != '') {
+			if (!empty($settings->get('voicemail', 'storage_type')) && $settings->get('voicemail', 'storage_type') == 'base64' && $row['greeting_base64'] != '') {
 				if ($greeting_id != $selected_greeting_id) {
 					@unlink($greeting_dir.'/'.$greeting_filename);
 				}
@@ -203,7 +210,7 @@
 			$array['voicemail_greetings'][$x]['greeting_name'] = $text['label-greeting'].' '.$greeting_id;
 			$array['voicemail_greetings'][$x]['greeting_filename'] = $greeting_file_name;
 			$array['voicemail_greetings'][$x]['greeting_description'] = '';
-			if (!empty($_SESSION['voicemail']['storage_type']['text']) && $_SESSION['voicemail']['storage_type']['text'] == 'base64') {
+			if (!empty($settings->get('voicemail', 'storage_type')) && $settings->get('voicemail', 'storage_type') == 'base64') {
 				$array['voicemail_greetings'][$x]['greeting_base64'] = base64_encode(file_get_contents($greeting_dir.'/'.$file_name));
 			}
 
@@ -216,8 +223,6 @@
 				$p->add('voicemail_greeting_edit', 'temp');
 
 				//execute inserts/updates
-				$database->app_name = 'voicemail_greetings';
-				$database->app_uuid = 'e4b4fbee-9e4d-8e46-3810-91ba663db0c2';
 				$database->save($array);
 				unset($array);
 
@@ -241,10 +246,7 @@
 	}
 
 //check the permission
-	if (permission_exists('voicemail_greeting_view')) {
-		//access granted
-	}
-	else {
+	if (!permission_exists('voicemail_greeting_view')) {
 		echo "access denied";
 		exit;
 	}
@@ -298,7 +300,7 @@
 	}
 
 //get the greetings list
-	if (!empty($_SESSION['voicemail']['storage_type']['text']) && $_SESSION['voicemail']['storage_type']['text'] == 'base64') {
+	if (!empty($settings->get('voicemail', 'storage_type')) && $settings->get('voicemail', 'storage_type') == 'base64') {
 		switch ($db_type) {
 			case 'pgsql': $sql_file_size = ", length(decode(greeting_base64,'base64')) as greeting_size "; break;
 			case 'mysql': $sql_file_size = ", length(from_base64(greeting_base64)) as greeting_size "; break;
@@ -395,7 +397,7 @@
 	$col_count++;
 	echo th_order_by('greeting_name', $text['label-name'], $order_by, $order, null, null, "id=".urlencode($voicemail_id));
 	$col_count++;
-	if (empty($_SESSION['voicemail']['storage_type']['text']) || $_SESSION['voicemail']['storage_type']['text'] != 'base64') {
+	if (empty($settings->get('voicemail', 'storage_type')) || $settings->get('voicemail', 'storage_type') != 'base64') {
 		echo th_order_by('greeting_filename', $text['label-filename'], $order_by, $order, null, "class='hide-sm-dn'", "id=".urlencode($voicemail_id));
 		$col_count++;
 	}
@@ -405,7 +407,7 @@
 	}
 	echo "<th class='center no-wrap hide-xs'>".$text['label-size']."</th>\n";
 	$col_count++;
-	if (empty($_SESSION['voicemail']['storage_type']['text']) || $_SESSION['voicemail']['storage_type']['text'] != 'base64') {
+	if (empty($settings->get('voicemail', 'storage_type')) || $settings->get('voicemail', 'storage_type') != 'base64') {
 		echo "<th class='center no-wrap hide-xs'>".$text['label-uploaded']."</th>\n";
 		$col_count++;
 	}
@@ -451,7 +453,7 @@
 				echo escape($row['greeting_name']);
 			}
 			echo "	</td>\n";
-			if (empty($_SESSION['voicemail']['storage_type']['text']) || $_SESSION['voicemail']['storage_type']['text'] != 'base64') {
+			if (empty($settings->get('voicemail', 'storage_type')) || $settings->get('voicemail', 'storage_type') != 'base64') {
 				echo "	<td class='hide-sm-dn'>".escape($row['greeting_filename'])."</td>\n";
 			}
 			if (permission_exists('voicemail_greeting_play') || permission_exists('voicemail_greeting_download')) {
@@ -473,13 +475,19 @@
 				}
 				echo "	</td>\n";
 			}
-			if (!empty($_SESSION['voicemail']['storage_type']['text']) && $_SESSION['voicemail']['storage_type']['text'] == 'base64') {
+
+			if (!empty($settings->get('voicemail', 'storage_type')) && $settings->get('voicemail', 'storage_type') == 'base64') {
 				$file_size = byte_convert($row['greeting_size']);
 				echo "	<td class='center no-wrap hide-xs'>".$file_size."</td>\n";
 			}
 			else {
-				$file_size = byte_convert(filesize($greeting_dir.'/'.$row['greeting_filename']));
-				$file_date = date("M d, Y H:i:s", filemtime($greeting_dir.'/'.$row['greeting_filename']));
+				if (file_exists($greeting_dir.'/'.$row['greeting_filename'])) {
+					$file_size = byte_convert(filesize($greeting_dir.'/'.$row['greeting_filename']));
+					$file_date = date("M d, Y H:i:s", filemtime($greeting_dir.'/'.$row['greeting_filename']));
+				} else {
+					$file_size = 0;
+					$file_date = '';
+				}
 				echo "	<td class='center no-wrap hide-xs'>".$file_size."</td>\n";
 				echo "	<td class='center no-wrap hide-xs'>".$file_date."</td>\n";
 			}
@@ -505,6 +513,11 @@
 	require_once "resources/footer.php";
 
 //define the download function (helps safari play audio sources)
+	/**
+	 * Handles a range download request for the given file.
+	 *
+	 * @param string $file The path to the file being downloaded.
+	 */
 	function range_download($file) {
 		$fp = @fopen($file, 'rb');
 
@@ -533,7 +546,7 @@
 			$c_start = $start;
 			$c_end   = $end;
 			// Extract the range string
-			list(, $range) = explode('=', $_SERVER['HTTP_RANGE'], 2);
+			[, $range] = explode('=', $_SERVER['HTTP_RANGE'], 2);
 			// Make sure the client hasn't sent us a multibyte range
 			if (strpos($range, ',') !== false) {
 				// (?) Shoud this be issued here, or should the first

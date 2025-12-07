@@ -35,9 +35,6 @@
 		exit;
 	}
 
-//connect to the database
-	$database = new database;
-
 //add multi-lingual support
 	$language = new text;
 	$text = $language->get();
@@ -72,7 +69,7 @@
 				break;
 		}
 
-		header('Location: users.php'.($search != '' ? '?search='.urlencode($search) : null));
+		header('Location: users.php'.($search != '' ? '?search='.urlencode($search) : ''));
 		exit;
 	}
 

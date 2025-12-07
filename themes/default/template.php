@@ -1,4 +1,3 @@
-{* <?php *}
 
 {*//set the doctype *}
 	{if $browser_name == 'Internet Explorer'}
@@ -20,7 +19,7 @@
 	<link rel='stylesheet' type='text/css' href='{$project_path}/resources/bootstrap/css/bootstrap-tempusdominus.min.css.php'>
 	<link rel='stylesheet' type='text/css' href='{$project_path}/resources/bootstrap/css/bootstrap-colorpicker.min.css.php'>
 	<link rel='stylesheet' type='text/css' href='{$project_path}/resources/fontawesome/css/all.min.css.php'>
-	<link rel='stylesheet' type='text/css' href='{$project_path}/themes/default/css.php?updated=202508190425'>
+	<link rel='stylesheet' type='text/css' href='{$project_path}/themes/default/css.php?updated=202509221124'>
 {*//link to custom css file *}
 	{if !empty($settings.theme.custom_css)}
 		<link rel='stylesheet' type='text/css' href='{$settings.theme.custom_css}'>
@@ -461,7 +460,7 @@
 					{/if}
 
 				//key: [ctrl]+[c], list,edit: to copy
-					{if $settings.theme.keyboard_shortcut_copy_enabled}
+					{if $settings.theme.keyboard_shortcut_copy_enabled|default:false}
 						{if $browser_name_short == 'Safari'} //emulate with detecting [c] only, as [command] and [control] keys are ignored when captured
 							{literal}
 							if (
@@ -704,6 +703,18 @@
 					return this.animate({opacity: 'toggle', height: 'toggle'}, speed, easing, callback);
 				};
 			})(jQuery);
+			{/literal}
+
+		//slide toggle
+			{literal}
+			var switches = document.getElementsByClassName('switch');
+			var toggle = function(){
+				this.children[0].value = (this.children[0].value == 'false' ? 'true' : 'false');
+				this.children[0].dispatchEvent(new Event('change'));
+				};
+			for (var i = 0; i < switches.length; i++) {
+				switches[i].addEventListener('click', toggle, false);
+			}
 			{/literal}
 
 	{literal}
@@ -1190,7 +1201,7 @@
 <body>
 
 	{*//video background *}
-	{if !empty({$background_video})}
+	{if !empty($background_video)}
 		<video id="background-video" autoplay muted poster="" disablePictureInPicture="true" onloadstart="this.playbackRate = 1; this.pause();">
 			<source src="{$background_video}" type="video/mp4">
 		</video>

@@ -83,8 +83,16 @@
 	//
 
 //system information
+	/**
+	 * Retrieves system information.
+	 *
+	 * @return array An array containing various system information such as PHP and switch versions,
+	 *               git repository details, operating system name, version, uptime, kernel, and type,
+	 *               memory usage, CPU usage, and disk space. The keys of the returned array are
+	 *               'version', 'git', 'path', 'switch', 'php', 'os', 'mem', and 'cpu'.
+	 */
 	function system_information(): array {
-		global $db_type;
+		global $database, $db_type;
 		$system_information = [];
 		$esl = event_socket::create();
 
@@ -148,6 +156,7 @@
 			}
 
 			$system_information['php']['version'] = phpversion();
+			$system_information['php']['apcu'] = (function_exists('apcu_enabled') && apcu_enabled()) ? 'true' : 'false';
 
 			if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
 				$data = explode("\n", shell_exec('systeminfo /FO CSV 2> nul'));
@@ -180,6 +189,7 @@
 			$system_information['os']['version'] = 'permission denied';
 		}
 
+		$system_information['os']['hostname'] = gethostname();
 		$system_information['os']['date'] = date('r');
 		$system_information['os']['type'] = PHP_OS;
 
@@ -272,7 +282,6 @@
 
 				//database version
 				$sql = "select version(); ";
-				$database = new database;
 				$database_name = $database->select($sql, null, 'column');
 				$database_array = explode(' ', $database_name);
 
